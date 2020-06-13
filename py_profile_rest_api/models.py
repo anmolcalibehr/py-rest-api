@@ -1,13 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.models import UserManager
+from django.contrib.auth.models import UserManager as AbstractUserManager
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import BaseUserManager
 
 
-class UserProfileManager(BaseUserManager):
+class UserManager(BaseUserManager):
     """ Manager for UserProfiles """ 
+    use_in_migrations = True
+
 
 def create_user(self, email , name , password=None):
     """ Create a New User Profile """
@@ -22,6 +24,7 @@ def create_user(self, email , name , password=None):
  
     return user
 
+
 def create_superuser(self , email , name , password):
     """ Create a New Super User with Fewer Details"""
     user = self.create_user(email, name , password)
@@ -35,23 +38,28 @@ def create_superuser(self , email , name , password):
 
 class UserProfile(AbstractBaseUser , PermissionsMixin):
     """ Database Models For User """
+    use_in_migrations = True
+
     email = models.EmailField(max_length=255 , unique=True)
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
-    object = UserProfileManager()
+    object = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']
+
 
 def get_full_name(self):
     """ Retrieve Full Name Of User """
     return self.name
 
+
 def get_short_name(self):
     """ Retrieve Short Name of User """
     return self.name
+
 
 def __str__(self):
     """ Return String Representation of Our User """    
