@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager as AbstractUserManager
 from django.contrib.auth.models import AbstractBaseUser
@@ -10,36 +11,33 @@ class UserManager(BaseUserManager):
     """ Manager for UserProfiles """ 
     use_in_migrations = True
 
+    def create_user(self, email , name , password=None):
+        """ Create a New User Profile """
+        if not email:
+            raise ValueError('User Must Enter an Email Address')
 
-def create_user(self, email , name , password=None):
-    """ Create a New User Profile """
-    if not email:
-        raise ValueError('User Must Enter an Email Address')
+        email = self.normalize_email(email)
+        user  = self.model(email=email, name=name)
 
-    email = self.normalize_email(email)
-    user  = self.model(email=email, name=name)
+        user.set_password(password)
+        user.save(using=self._db)
+    
+        return user
 
-    user.set_password(password)
-    user.save(using=self._db)
- 
-    return user
+    def create_superuser(self , email , name , password):
+        """ Create a New Super User with Fewer Details"""
+        user = self.create_user(email, name , password)
 
+        user.is_superuser = True 
+        user.is_staff = True
+        user.save(using=self._db)
 
-def create_superuser(self , email , name , password):
-    """ Create a New Super User with Fewer Details"""
-    user = self.create_user(email, name , password)
-
-    user.is_superuser = True 
-    user.is_staff = True
-    user.save(using=self._db)
-
-    return user
+        return user
 
 
 class UserProfile(AbstractBaseUser , PermissionsMixin):
     """ Database Models For User """
     use_in_migrations = True
-
     email = models.EmailField(max_length=255 , unique=True)
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
@@ -50,19 +48,16 @@ class UserProfile(AbstractBaseUser , PermissionsMixin):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']
 
+    def get_full_name(self):
+        """ Retrieve Full Name Of User """
+        return self.name
 
-def get_full_name(self):
-    """ Retrieve Full Name Of User """
-    return self.name
+    def get_short_name(self):
+        """ Retrieve Short Name of User """
+        return self.name
 
-
-def get_short_name(self):
-    """ Retrieve Short Name of User """
-    return self.name
-
-
-def __str__(self):
-    """ Return String Representation of Our User """    
-    return self.email
+    def __str__(self):
+        """ Return String Representation of Our User """    
+        return self.email
 
 
